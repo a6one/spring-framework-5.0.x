@@ -16,24 +16,8 @@
 
 package org.springframework.web.servlet;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-
 import org.springframework.beans.BeanUtils;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationContextException;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.*;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.context.i18n.LocaleContext;
@@ -64,6 +48,17 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.util.NestedServletException;
 import org.springframework.web.util.WebUtils;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * Base servlet for Spring's web framework. Provides integration with
@@ -524,21 +519,48 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
+
+		/**											servletContext
+		 * 												 |
+		 * IoC：ConfigurableApplicationContext 	->applicationContext
+		 *
+		 *
+		 * web：ConfigurableWebApplicationContext ->webApplicationContext（AnnotationConfigWebApplicationContext）
+		 *
+		 *
+		 * servletContext --> webApplicationContext 上下文
+		 * 					  applicationContext;
+		 *
+		 * webApplicationContext ->注入handlerMapping | handlerAdapter
+		 *
+		 */
+
+		//IoC容器
 		WebApplicationContext rootContext =
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+		//web容器（AnnotationConfigWebApplicationContext）
 		WebApplicationContext wac = null;
-
+		/**
+		 *
+		 * WebApplicationContext =
+		 *  org.springframework.web.context.support.AnnotationConfigWebApplicationContext@4b30a981
+		 */
 		if (this.webApplicationContext != null) {
 			// A context instance was injected at construction time -> use it
 			wac = this.webApplicationContext;
+
 			if (wac instanceof ConfigurableWebApplicationContext) {
 				ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) wac;
 				if (!cwac.isActive()) {
 					// The context has not yet been refreshed -> provide services such as
 					// setting the parent context, setting the application context id, etc
+
+					// 子容器只能有一个父级容器
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent -> set
 						// the root application context (if any; may be null) as the parent
+
+						//web容器设置父级容器（这里的父级容器是根据servletContext对象创建而来的）
 						cwac.setParent(rootContext);
 					}
 					configureAndRefreshWebApplicationContext(cwac);
@@ -645,6 +667,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		return wac;
 	}
 
+	//ConfigurableApplicationContext
+
 	protected void configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext wac) {
 		if (ObjectUtils.identityToString(wac).equals(wac.getId())) {
 			// The application context id is still set to its original default value
@@ -659,6 +683,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			}
 		}
 
+		/**
+		 * web容器中包含：
+		 * 	1.servletContext对象
+		 * 	2.servletConfig对象
+		 * 	3.namespace->servlet的名称
+		 * 	4.注册了一个监听器，用于过滤来自指定事件源的事件
+		 */
 		wac.setServletContext(getServletContext());
 		wac.setServletConfig(getServletConfig());
 		wac.setNamespace(getNamespace());
@@ -672,8 +703,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			((ConfigurableWebEnvironment) env).initPropertySources(getServletContext(), getServletConfig());
 		}
 
+		//web容器的后置处理
 		postProcessWebApplicationContext(wac);
 		applyInitializers(wac);
+		//刷新spring的Ioc容器的对象，这里可以看出，springboot知识将这流程步骤就行了改写，但是实质的功能spring已经提供了
+		/**
+		 * 这里将web容器组件加载的
+		 */
 		wac.refresh();
 	}
 
@@ -736,6 +772,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 		AnnotationAwareOrderComparator.sort(this.contextInitializers);
 		for (ApplicationContextInitializer<ConfigurableApplicationContext> initializer : this.contextInitializers) {
+			//todo 这里会循环的区执行ApplicationContextInitializer的方法，类似于springboot启动时候的调用
 			initializer.initialize(wac);
 		}
 	}
@@ -846,10 +883,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	/**
 	 * Override the parent class implementation in order to intercept PATCH requests.
 	 */
+
+	//todo servlet3.0-->调用FrameworkServlet中的service进行了重写，请求的入口方法
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
+		//枚举中进行判断
 		HttpMethod httpMethod = HttpMethod.resolve(request.getMethod());
 		if (httpMethod == HttpMethod.PATCH || httpMethod == null) {
 			processRequest(request, response);
@@ -978,6 +1018,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
+			//	todo 请求的入口函数
 			doService(request, response);
 		}
 		catch (ServletException | IOException ex) {
@@ -1048,6 +1089,11 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 	}
 
+	/**
+	 *
+	 * RequestContextHolder 中对象请求和响应的封装，可以在任何地方可以获取到request和response对象
+	 *
+	 */
 	private void initContextHolders(HttpServletRequest request,
 			@Nullable LocaleContext localeContext, @Nullable RequestAttributes requestAttributes) {
 

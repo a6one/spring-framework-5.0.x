@@ -16,10 +16,6 @@
 
 package org.springframework.web.method.annotation;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.servlet.ServletException;
-
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.config.BeanExpressionContext;
@@ -35,6 +31,10 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestScope;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+
+import javax.servlet.ServletException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Abstract base class for resolving method arguments from a named value.
@@ -94,6 +94,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	public final Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
 
+		//封装参数名
 		NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
 		MethodParameter nestedParameter = parameter.nestedIfOptional();
 
@@ -145,6 +146,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 		NamedValueInfo namedValueInfo = this.namedValueInfoCache.get(parameter);
 		if (namedValueInfo == null) {
 			namedValueInfo = createNamedValueInfo(parameter);
+			//解析参数名
 			namedValueInfo = updateNamedValueInfo(parameter, namedValueInfo);
 			this.namedValueInfoCache.put(parameter, namedValueInfo);
 		}
@@ -165,6 +167,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	private NamedValueInfo updateNamedValueInfo(MethodParameter parameter, NamedValueInfo info) {
 		String name = info.name;
 		if (info.name.isEmpty()) {
+			//todo step 1这里是第一次获取参数名的地方
 			name = parameter.getParameterName();
 			if (name == null) {
 				throw new IllegalArgumentException(

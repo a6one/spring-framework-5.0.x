@@ -1,6 +1,8 @@
 plugins {
     id 'java'
 }
+// gradle 打war包的方式比较特殊，将工程变为war包
+apply plugin: 'war'
 
 group 'org.springframework'
 version '5.0.16.BUILD-SNAPSHOT'
@@ -13,5 +15,7 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile project(':spring-context')
+    optional(project(":spring-webmvc"))
+    optional("javax.servlet:javax.servlet-api:3.1.0")
+
 }

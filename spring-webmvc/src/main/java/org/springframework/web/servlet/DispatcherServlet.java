@@ -16,26 +16,8 @@
 
 package org.springframework.web.servlet;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -59,6 +41,13 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.util.NestedServletException;
 import org.springframework.web.util.WebUtils;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Central dispatcher for HTTP request handlers/controllers, e.g. for web UI controllers
@@ -485,6 +474,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	/**
 	 * This implementation calls {@link #initStrategies}.
 	 */
+
+	//在传进了web容器后，开始刷新web
 	@Override
 	protected void onRefresh(ApplicationContext context) {
 		initStrategies(context);
@@ -495,14 +486,23 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		//初始化文件上传对象
 		initMultipartResolver(context);
+		//初始化国际化对象
 		initLocaleResolver(context);
+		//初始化主题对象
 		initThemeResolver(context);
+		//初始化handlerMappings对象
 		initHandlerMappings(context);
+		//初始化HandlerAdapter对象
 		initHandlerAdapters(context);
+		//初始化HandlerExceptionResolver对象
 		initHandlerExceptionResolvers(context);
+		//初始化RequestToViewNameTranslator对象
 		initRequestToViewNameTranslator(context);
+		//初始化ViewResolver对象
 		initViewResolvers(context);
+		//初始化FlashMapManager对象
 		initFlashMapManager(context);
 	}
 
@@ -921,6 +921,9 @@ public class DispatcherServlet extends FrameworkServlet {
 			request.setAttribute(FLASH_MAP_MANAGER_ATTRIBUTE, this.flashMapManager);
 		}
 
+		/**
+		 * doService --> doDisPatch
+		 */
 		try {
 			doDispatch(request, response);
 		}
@@ -950,6 +953,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		HandlerExecutionChain mappedHandler = null;
 		boolean multipartRequestParsed = false;
 
+		//web异步的管理器
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 
 		try {
@@ -957,15 +961,28 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				//检查是否是文件上传的的请求：MultipartHttpServletRequest
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
+				/**
+				 * 	BeanNameUrlHandlerMapping    ->@Component("test.do")
+				 *  RequestMappingHandlerMapping ->@RequestMapping("test.do")
+				 *  RouterFunctionMapping        ->RouteMapping(反应式编程webFlux)
+				 */
 				// Determine handler for the current request.
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
+
+				/**
+				 * HttpRequestHandlerAdapter
+				 * SimpleControllerHandlerAdapter
+				 * RequestMappingHandlerAdapter
+				 * HandlerFunctionAdapter
+				 */
 
 				// Determine handler adapter for the current request.
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
@@ -983,10 +1000,14 @@ public class DispatcherServlet extends FrameworkServlet {
 					}
 				}
 
+				//1.指定前置的拦截器，这里如果返回的是false也会去执行AfterCompletion中的方法
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
+				/**
+				 * 真正执行handler的方法
+				 */
 				// Actually invoke the handler.
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
@@ -995,6 +1016,8 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
+
+				//2.执行拦截器中postHandler，执行顺序和preHandle的方式相反，如果异常也会执行AfterCompletion中方法
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1005,6 +1028,11 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+
+			/**
+			 * 1.发送视图
+			 * 2.triggerAfterCompletion拦截器处理
+			 */
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
@@ -1018,6 +1046,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				// Instead of postHandle and afterCompletion
 				if (mappedHandler != null) {
+					//异步拦截器的处理
 					mappedHandler.applyAfterConcurrentHandlingStarted(processedRequest, response);
 				}
 			}

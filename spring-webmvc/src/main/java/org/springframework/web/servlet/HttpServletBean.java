@@ -16,22 +16,9 @@
 
 package org.springframework.web.servlet;
 
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.beans.PropertyValue;
-import org.springframework.beans.PropertyValues;
+import org.springframework.beans.*;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -45,6 +32,13 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.support.ServletContextResourceLoader;
 import org.springframework.web.context.support.StandardServletEnvironment;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Simple extension of {@link javax.servlet.http.HttpServlet} which treats
@@ -143,6 +137,50 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 * invoke subclass initialization.
 	 * @throws ServletException if bean properties are invalid (or required
 	 * properties are missing), or if subclass initialization fails.
+	 */
+
+
+	/**
+	 * 3.2.2
+	 * TODO 这个是springMVC启动的最开始的入口：
+	 *
+	 * HttpServletBean
+	 * 		|
+	 * FrameworkServlet
+	 * 		|
+	 * DispatcherServlet
+	 *
+	 *
+	 * 启动的流程：
+	 * 1.servlet的init方法：
+	 * 2.FrameworkServlet --> initServletBean()
+	 * 					initWebApplicationContext();
+	 * 3.DispatcherServlet：初始化一些对象
+	 *-----------------------------------
+	 * 接受请求的流程：
+	 * FrameworkServlet-->service()->DispatchServlet->doService->doDispatch
+	 *
+	 * ----------------------------------
+	 * 参数绑定流程：
+	 * 1.处理器适配器执行
+	 * 		mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+	 * 		mav = invokeHandlerMethod(request, response, handlerMethod);
+	 * 		invocableMethod.invokeAndHandle(webRequest, mavContainer);
+	 * 	    Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+	 * 	    Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
+	 * 	    args[i] = this.argumentResolvers.resolveArgument(
+	 * 							parameter, mavContainer, request, this.dataBinderFactory);
+	 * 		resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+	 *
+	 * 2.NameValueInfo进行封装
+	 * 	 NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
+	 *
+	 * 	 namedValueInfo = updateNamedValueInfo(parameter, namedValueInfo);
+	 *
+	 * 	 name = parameter.getParameterName();
+	 *
+	 * 	 parameterNames = discoverer.getParameterNames((Method) this.executable);
+	 *
 	 */
 	@Override
 	public final void init() throws ServletException {
