@@ -138,9 +138,15 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 			String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
 			throws BeansException {
 
+		/**
+		 * PathMatchingResourcePatternResolver支持Ant风格的路径解析。
+		 */
 		super(parent);
 		setConfigLocations(configLocations);
 		if (refresh) {
+			/**
+			 * 通过xml方式来进行组件的装载，这里的装载都是调用refresh
+			 */
 			refresh();
 		}
 	}

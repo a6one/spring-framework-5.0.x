@@ -1,5 +1,6 @@
 package spring.example.dao;
 
+
 public class UserDao {
 
 	public String getAll() {

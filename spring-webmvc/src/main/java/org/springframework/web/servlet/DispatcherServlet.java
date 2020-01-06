@@ -250,7 +250,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	/**
 	 * Name of the class path resource (relative to the DispatcherServlet class)
-	 * that defines DispatcherServlet's default strategy names.
+	 * that defines DispatcherServlet's defadoult strategy names.
 	 */
 	private static final String DEFAULT_STRATEGIES_PATH = "DispatcherServlet.properties";
 
