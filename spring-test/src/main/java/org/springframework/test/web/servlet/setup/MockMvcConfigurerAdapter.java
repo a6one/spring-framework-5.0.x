@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * An empty method implementation of {@link MockMvcConfigurer}.
+ * An empty methoened implementation of {@link MockMvcConfigurer}.
  *
  * @author Rossen Stoyanchev
  * @since 4.1
