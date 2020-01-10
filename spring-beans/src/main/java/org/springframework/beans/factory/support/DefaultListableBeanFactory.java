@@ -692,7 +692,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		for (String beanName : beanNames) {
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
+				//factoryBean是一种特殊的bean ,需要使用&beanName才能获取
 				if (isFactoryBean(beanName)) {
+					//factoryBean创建的bean的beanName比较特殊前缀是已&开头的
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof FactoryBean) {
 						final FactoryBean<?> factory = (FactoryBean<?>) bean;
@@ -712,6 +714,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					}
 				}
 				else {
+					/**
+					 * factoryBean 特殊bean
+					 * 			   不同bean
+					 */
 					getBean(beanName);
 				}
 			}

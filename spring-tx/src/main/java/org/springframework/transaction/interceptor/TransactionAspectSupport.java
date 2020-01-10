@@ -16,13 +16,8 @@
 
 package org.springframework.transaction.interceptor;
 
-import java.lang.reflect.Method;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -38,6 +33,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.StringUtils;
+
+import java.lang.reflect.Method;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Base class for transactional aspects, such as the {@link TransactionInterceptor}
@@ -278,14 +277,17 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	protected Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass,
 			final InvocationCallback invocation) throws Throwable {
 
-		// If the transaction attribute is null, the method is non-transactional.
+		// If the transaction attribute is null, the method is non-transactional. //如果事务属性是空，则这个方法是没有事务的
 		TransactionAttributeSource tas = getTransactionAttributeSource();
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+		//事务属性-->平台事务管理器（必须导入）
 		final PlatformTransactionManager tm = determineTransactionManager(txAttr);
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
 
+		// 2.处理声明式事物
 		if (txAttr == null || !(tm instanceof CallbackPreferringPlatformTransactionManager)) {
 			// Standard transaction demarcation with getTransaction and commit/rollback calls.
+			//一次事务的所有信息
 			TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
 
 			Object retVal;
@@ -300,12 +302,15 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				throw ex;
 			}
 			finally {
+				//清理事务
 				cleanupTransactionInfo(txInfo);
 			}
+			//提交事务
 			commitTransactionAfterReturning(txInfo);
 			return retVal;
 		}
 
+		// 3.处理编程式事物
 		else {
 			final ThrowableHolder throwableHolder = new ThrowableHolder();
 
@@ -469,6 +474,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			};
 		}
 
+		//事务状态
 		TransactionStatus status = null;
 		if (txAttr != null) {
 			if (tm != null) {
@@ -547,8 +553,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
 						"] after exception: " + ex);
 			}
+			//rollbackOn回滚方法
 			if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
 				try {
+					//通过
 					txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());
 				}
 				catch (TransactionSystemException ex2) {
@@ -680,7 +688,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * Concrete interceptors/aspects adapt this to their invocation mechanism.
 	 */
 	@FunctionalInterface
-	protected interface InvocationCallback {
+	public interface InvocationCallback {
 
 		Object proceedWithInvocation() throws Throwable;
 	}

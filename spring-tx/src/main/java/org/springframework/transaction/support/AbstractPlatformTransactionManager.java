@@ -16,25 +16,16 @@
 
 package org.springframework.transaction.support;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.core.Constants;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.*;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.core.Constants;
-import org.springframework.lang.Nullable;
-import org.springframework.transaction.IllegalTransactionStateException;
-import org.springframework.transaction.InvalidTimeoutException;
-import org.springframework.transaction.NestedTransactionNotSupportedException;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.TransactionSuspensionNotSupportedException;
-import org.springframework.transaction.UnexpectedRollbackException;
 
 /**
  * Abstract base class that implements Spring's standard transaction workflow,
@@ -349,16 +340,19 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 			definition = new DefaultTransactionDefinition();
 		}
 
+		//todo 是否存在事务（一开始是没有事务的）这里涉及到事务的嵌套作用
 		if (isExistingTransaction(transaction)) {
 			// Existing transaction found -> check propagation behavior to find out how to behave.
 			return handleExistingTransaction(definition, transaction, debugEnabled);
 		}
 
+		//事务超时
 		// Check definition settings for new transaction.
 		if (definition.getTimeout() < TransactionDefinition.TIMEOUT_DEFAULT) {
 			throw new InvalidTimeoutException("Invalid transaction timeout", definition.getTimeout());
 		}
 
+		//使用事务，没有事务就抛异常
 		// No existing transaction found -> check propagation behavior to find out how to proceed.
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_MANDATORY) {
 			throw new IllegalTransactionStateException(
@@ -367,6 +361,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		else if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRED ||
 				definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW ||
 				definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
+			//挂起当前事务
 			SuspendedResourcesHolder suspendedResources = suspend(null);
 			if (debugEnabled) {
 				logger.debug("Creating new transaction with name [" + definition.getName() + "]: " + definition);
@@ -375,6 +370,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 				boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
 				DefaultTransactionStatus status = newTransactionStatus(
 						definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
+				//开启一个事务 mysql->jdbc 事务就需要使用到jdbc
 				doBegin(transaction, definition);
 				prepareSynchronization(status, definition);
 				return status;
@@ -707,10 +703,12 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 			if (defStatus.isDebug()) {
 				logger.debug("Global transaction is marked as rollback-only but transactional code requested commit");
 			}
+			//回滚事务
 			processRollback(defStatus, true);
 			return;
 		}
 
+		//提交事务
 		processCommit(defStatus);
 	}
 
@@ -726,6 +724,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 
 			try {
 				boolean unexpectedRollback = false;
+				//
 				prepareForCommit(status);
 				triggerBeforeCommit(status);
 				triggerBeforeCompletion(status);
@@ -736,6 +735,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 						logger.debug("Releasing transaction savepoint");
 					}
 					unexpectedRollback = status.isGlobalRollbackOnly();
+					//保存点
 					status.releaseHeldSavepoint();
 				}
 				else if (status.isNewTransaction()) {

@@ -573,6 +573,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			/**
+			 * ListableBeanFactory
+			 * Map<beanName,BeanDefinition> 这个时候还没有实例化，只是封装了
+			 *
+			 *
+			 * DefaultListableBeanFactory-->默认的beanFactory
+			 *
+			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
@@ -588,24 +596,48 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				/**
+				 *
+				 * 回调所有的beanFactory的后置处理器bean
+				 *
+				 * BeanFactoryPostProcessor
+				 * BeanDefinitionRegistryPostProcessor
+				 *
+				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
+				/**
+				 * 注册所有bean的后置处理器
+				 * BeanPostProcessor
+				 *
+				 * beanFactory -->BeanPostProcessor[] 注册所有的后置处理器
+				 *
+				 * bean生命周期中的9中后置处理器
+				 */
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
+				// 这里手动注册了多播器（事件监听 + 事件）
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
+				// 可以进行扩展
 				onRefresh();
 
 				// Check for listener beans and register them.
+				/**
+				 * 	(ApplicationEventMulticaster -> ApplicationListener + ApplicationEvent )
+ 				 */
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				/**
+				 * 开始实例化bean
+				 */
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
@@ -838,6 +870,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		} else {
 			this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+			//手动注册一个多播器
 			beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Unable to locate ApplicationEventMulticaster with name '" +
@@ -945,6 +978,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
+		/**
+		 * 实例单例bean
+		 */
 		beanFactory.preInstantiateSingletons();
 	}
 

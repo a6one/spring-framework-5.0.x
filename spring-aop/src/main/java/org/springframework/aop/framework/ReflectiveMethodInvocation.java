@@ -16,19 +16,18 @@
 
 package org.springframework.aop.framework;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.aop.ProxyMethodInvocation;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.core.BridgeMethodResolver;
+import org.springframework.lang.Nullable;
+
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-
-import org.springframework.aop.ProxyMethodInvocation;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.core.BridgeMethodResolver;
-import org.springframework.lang.Nullable;
 
 /**
  * Spring's implementation of the AOP Alliance
@@ -114,6 +113,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 		this.targetClass = targetClass;
 		this.method = BridgeMethodResolver.findBridgedMethod(method);
 		this.arguments = AopProxyUtils.adaptArgumentsIfNecessary(method, arguments);
+		//List<Object> interceptorList 所有的拦截器
 		this.interceptorsAndDynamicMethodMatchers = interceptorsAndDynamicMethodMatchers;
 	}
 
@@ -155,10 +155,13 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	}
 
 
+	//aop + transaction
 	@Override
 	@Nullable
 	public Object proceed() throws Throwable {
 		// We start with an index of -1 and increment early.
+
+		//todo List<Object> interceptorList 所有的拦截器
 		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
 			return invokeJoinpoint();
 		}
@@ -171,9 +174,11 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 			InterceptorAndDynamicMethodMatcher dm =
 					(InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;
 			if (dm.methodMatcher.matches(this.method, this.targetClass, this.arguments)) {
+				//这里开始去执行拦截器(aop + 事务拦截器调用位置)
 				return dm.interceptor.invoke(this);
 			}
 			else {
+				// 这里没有匹配上
 				// Dynamic matching failed.
 				// Skip this interceptor and invoke the next in the chain.
 				return proceed();

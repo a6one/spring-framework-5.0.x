@@ -16,15 +16,14 @@
 
 package org.springframework.transaction.interceptor;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.lang.Nullable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.lang.Nullable;
 
 /**
  * TransactionAttribute implementation that works out whether a given exception
@@ -128,12 +127,15 @@ public class RuleBasedTransactionAttribute extends DefaultTransactionAttribute i
 	 * return false.
 	 * @see TransactionAttribute#rollbackOn(java.lang.Throwable)
 	 */
+
+	//回滚时候调用
 	@Override
 	public boolean rollbackOn(Throwable ex) {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Applying rules to determine whether transaction should rollback on " + ex);
 		}
 
+		//回滚规则属性：可以设置回滚规则属性
 		RollbackRuleAttribute winner = null;
 		int deepest = Integer.MAX_VALUE;
 

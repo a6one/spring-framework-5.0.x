@@ -43,6 +43,26 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.transaction.support.DefaultTransactionDefinition
  * @see org.springframework.transaction.interceptor.TransactionAttribute
  */
+
+/**
+ * =======================================传播行为=======================================
+ * PROPAGATION_REQUIRED	如果当前没有事物，则新建一个事物；如果已经存在一个事物，则加入到这个事物中
+ * PROPAGATION_SUPPORTS	支持当前事物，如果当前没有事物，则以非事物方式执行
+ * PROPAGATION_MANDATORY	使用当前事物，如果当前没有事物，则抛出异常
+ * PROPAGATION_REQUIRES_NEW	新建事物，如果当前已经存在事物，则挂起当前事物
+ * PROPAGATION_NOT_SUPPORTED	以非事物方式执行，如果当前存在事物，则挂起当前事物
+ * PROPAGATION_NEVER	以非事物方式执行，如果当前存在事物，则抛出异常
+ * PROPAGATION_NESTED	如果当前存在事物，则在嵌套事物内执行；如果当前没有事物，则与PROPAGATION_REQUIRED传播特性相同
+ *=======================================隔离级别=======================================
+ * 隔离级别						脏读			不可重复读		幻象读		第一类丢失更新		第二类丢失更新
+ * ISOLATION_DEFAULT			同后端数据库	同后端数据库	  同后端数据库	同后端数据库			同后端数据库
+ * ISOLATION_READ_UNCOMMITTED	允许			允许				允许				允许					允许
+ * ISOLATION_READ_COMMITTED		脏读			允许				允许				允许					允许
+ * ISOLATION_REPEATABLE_READ   不允许		不允许			允许				不允许				不允许
+ * ISOLATION_SERIALIZABLE	   不允许		不允许			不允许			不允许				不允许
+ *
+ *
+ */
 public interface TransactionDefinition {
 
 	/**
@@ -51,6 +71,7 @@ public interface TransactionDefinition {
 	 * <p>This is typically the default setting of a transaction definition,
 	 * and typically defines a transaction synchronization scope.
 	 */
+	//如果当前没有事物，则新建一个事物；如果已经存在一个事物，则加入到这个事物中。
 	int PROPAGATION_REQUIRED = 0;
 
 	/**
@@ -72,6 +93,7 @@ public interface TransactionDefinition {
 	 * @see org.springframework.transaction.support.AbstractPlatformTransactionManager#setTransactionSynchronization
 	 * @see org.springframework.transaction.support.AbstractPlatformTransactionManager#SYNCHRONIZATION_ON_ACTUAL_TRANSACTION
 	 */
+	// 支持当前事物，如果当前没有事物，则以非事物方式执行。
 	int PROPAGATION_SUPPORTS = 1;
 
 	/**
@@ -80,6 +102,7 @@ public interface TransactionDefinition {
 	 * <p>Note that transaction synchronization within a {@code PROPAGATION_MANDATORY}
 	 * scope will always be driven by the surrounding transaction.
 	 */
+	// 使用当前事物，如果当前没有事物，则抛出异常。
 	int PROPAGATION_MANDATORY = 2;
 
 	/**
@@ -95,6 +118,7 @@ public interface TransactionDefinition {
 	 * and resumed appropriately.
 	 * @see org.springframework.transaction.jta.JtaTransactionManager#setTransactionManager
 	 */
+	// 新建事物，如果当前已经存在事物，则挂起当前事物。
 	int PROPAGATION_REQUIRES_NEW = 3;
 
 	/**
@@ -110,6 +134,7 @@ public interface TransactionDefinition {
 	 * will be suspended and resumed appropriately.
 	 * @see org.springframework.transaction.jta.JtaTransactionManager#setTransactionManager
 	 */
+	// 以非事物方式执行，如果当前存在事物，则挂起当前事物。
 	int PROPAGATION_NOT_SUPPORTED = 4;
 
 	/**
@@ -118,6 +143,7 @@ public interface TransactionDefinition {
 	 * <p>Note that transaction synchronization is <i>not</i> available within a
 	 * {@code PROPAGATION_NEVER} scope.
 	 */
+	// 以非事物方式执行，如果当前存在事物，则抛出异常。
 	int PROPAGATION_NEVER = 5;
 
 	/**
@@ -131,6 +157,7 @@ public interface TransactionDefinition {
 	 * nested transactions as well.
 	 * @see org.springframework.jdbc.datasource.DataSourceTransactionManager
 	 */
+	// 如果当前存在事物，则在嵌套事物内执行；如果当前没有事物，则与PROPAGATION_REQUIRED传播特性相同
 	int PROPAGATION_NESTED = 6;
 
 
@@ -139,6 +166,7 @@ public interface TransactionDefinition {
 	 * All other levels correspond to the JDBC isolation levels.
 	 * @see java.sql.Connection
 	 */
+	// 使用后端数据库默认的隔离级别。
 	int ISOLATION_DEFAULT = -1;
 
 	/**
@@ -150,6 +178,7 @@ public interface TransactionDefinition {
 	 * retrieved an invalid row.
 	 * @see java.sql.Connection#TRANSACTION_READ_UNCOMMITTED
 	 */
+	// READ_UNCOMMITTED 隔离级别
 	int ISOLATION_READ_UNCOMMITTED = Connection.TRANSACTION_READ_UNCOMMITTED;
 
 	/**
@@ -159,6 +188,7 @@ public interface TransactionDefinition {
 	 * with uncommitted changes in it.
 	 * @see java.sql.Connection#TRANSACTION_READ_COMMITTED
 	 */
+	// READ_COMMITTED 隔离级别
 	int ISOLATION_READ_COMMITTED = Connection.TRANSACTION_READ_COMMITTED;
 
 	/**
@@ -170,6 +200,7 @@ public interface TransactionDefinition {
 	 * getting different values the second time (a "non-repeatable read").
 	 * @see java.sql.Connection#TRANSACTION_REPEATABLE_READ
 	 */
+	// REPEATABLE_READ 隔离级别
 	int ISOLATION_REPEATABLE_READ = Connection.TRANSACTION_REPEATABLE_READ;
 
 	/**
@@ -183,6 +214,7 @@ public interface TransactionDefinition {
 	 * in the second read.
 	 * @see java.sql.Connection#TRANSACTION_SERIALIZABLE
 	 */
+	// SERIALIZABLE 隔离级别
 	int ISOLATION_SERIALIZABLE = Connection.TRANSACTION_SERIALIZABLE;
 
 
@@ -220,6 +252,7 @@ public interface TransactionDefinition {
 	 * @see #ISOLATION_DEFAULT
 	 * @see org.springframework.transaction.support.AbstractPlatformTransactionManager#setValidateExistingTransaction
 	 */
+	// 获取事物传播特性
 	int getIsolationLevel();
 
 	/**
@@ -232,6 +265,7 @@ public interface TransactionDefinition {
 	 * an exception when given any other timeout than {@link #TIMEOUT_DEFAULT}.
 	 * @return the transaction timeout
 	 */
+	// 获取事物超时时间
 	int getTimeout();
 
 	/**
@@ -250,6 +284,7 @@ public interface TransactionDefinition {
 	 * @see org.springframework.transaction.support.TransactionSynchronization#beforeCommit(boolean)
 	 * @see org.springframework.transaction.support.TransactionSynchronizationManager#isCurrentTransactionReadOnly()
 	 */
+	// 判断事物是否可读
 	boolean isReadOnly();
 
 	/**
@@ -262,6 +297,7 @@ public interface TransactionDefinition {
 	 * @see org.springframework.transaction.interceptor.TransactionAspectSupport
 	 * @see org.springframework.transaction.support.TransactionSynchronizationManager#getCurrentTransactionName()
 	 */
+	// 获取事物名称
 	@Nullable
 	String getName();
 

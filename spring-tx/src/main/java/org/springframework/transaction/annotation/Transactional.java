@@ -16,15 +16,10 @@
 
 package org.springframework.transaction.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.transaction.TransactionDefinition;
+
+import java.lang.annotation.*;
 
 /**
  * Describes a transaction attribute on an individual method or on a class.
@@ -41,6 +36,7 @@ import org.springframework.transaction.TransactionDefinition;
  * does not have to know about annotations. If no rules are relevant to the exception,
  * it will be treated like
  * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
+ * //spring-事务，只支持RuntimeException和Exception 不支持Exception
  * (rolling back on {@link RuntimeException} and {@link Error} but not on checked
  * exceptions).
  *
