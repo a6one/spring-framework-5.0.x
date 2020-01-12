@@ -189,7 +189,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 * 		org.springframework.transaction.interceptor.TransactionAspectSupport#invokeWithinTransaction(java.lang.reflect.Method, java.lang.Class, org.springframework.transaction.interceptor.TransactionAspectSupport.InvocationCallback)
 		 *===============================================================
 		 *
-		 * 事务总结：2,4  | 2,3 【4】-->jdbc依赖（事务的开启）
+		 * 事务总结：2（传播行为 + 隔离级别）,4  | 2,3 【4】-->jdbc依赖（事务的开启）
 		 * AutoProxyRegistrar-->
 		 * 		InfrastructureAdvisorAutoProxyCreator | AbstractAutoProxyCreator（注册一个后置处理器）
 		 *

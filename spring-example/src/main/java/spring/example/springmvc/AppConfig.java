@@ -32,7 +32,7 @@ public class AppConfig {
 		SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
 		factoryBean.setDataSource(dataSource);
 		//不设置mapper.xml
-		factoryBean.setMapperLocations(new Resource[]{new ClassPathResource("MyMapper.xml")});
+		factoryBean.setMapperLocations(new Resource[]{new ClassPathResource("meee.xml")});
 		return factoryBean.getObject();
 	}
 
