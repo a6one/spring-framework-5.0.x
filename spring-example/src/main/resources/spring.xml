@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+
+	<!-- ====================父子bean==================== -->
+	<!-- 子bean必须与父bean保持兼容，也就是说子bean中必须有父bean定义的所有属性 -->
+	<!-- 父bean必须是抽象bean,也就是不让bean工厂实例化该bean-->
+	<!-- 父bean可以不指定class属性,此时的父bean完全当做模板来使用,但是子类必须指定class属性-->
+
+	<bean id="roleDao" class="spring.example.dao.RoleDao" abstract="true">
+		<property name="name" value="合并并定义"/>
+	</bean>
+	<bean id="userDao" class="spring.example.dao.UserDao"/>
+
+	<!--<bean id="userDao" class="spring.example.dao.UserDao" parent="roleDao"/>-->
+
+
+	<!--spring-bean实例化方式： 构造函数实例化，工厂方法实例化，静态工厂方法实例化-->
+
+	<!--构造方法-->
+	<bean id="person2" class="spring.example.dao.Person">
+		<constructor-arg index="0" name="name" value="tom"/>
+		<constructor-arg index="1" name="age" value="11" type="java.lang.Integer"/>
+		<constructor-arg index="2" name="userDao" ref="userDao" type="spring.example.dao.UserDao"/>
+	</bean>
+
+	<!--实例工厂-->
+	<bean id="personFactory" class="spring.example.dao.PersonFactory"/>
+	<!-- 不能指定class属性,此时必须使用factory-bean属性来指定工厂Bean,factory-method属性指定实例化Bean的方法 -->
+	<bean id="person3" factory-bean="personFactory" factory-method="newInstance">
+		<constructor-arg name="name" value="tom"/>
+		<constructor-arg name="age" value="19"/>
+		<constructor-arg name="userDao" ref="userDao"/>
+	</bean>
+
+	<!--静态工厂-->
+	<bean id="person4" class="spring.example.dao.personStaticFactory" factory-method="newInstance">
+		<constructor-arg name="name" value="tom"/>
+		<constructor-arg name="age" value="19"/>
+		<constructor-arg name="userDao" ref="userDao"/>
+	</bean>
+
+	<!--内部bean的实例，是根据外部bean的实例才会实例化===>DependOn-->
+	<bean id="outer" class="spring.example.dao.Outer">
+		<property name="name" value="我是一个外部bean"/>
+		<property name="age" value="11"/>
+		<property name="inner">
+			<bean class="spring.example.dao.Inner">
+				<property name="name" value="我是一个内部bean"/>
+				<property name="age" value="19"/>
+			</bean>
+		</property>
+	</bean>
+
+	<!--父子bean
+	子bean必须与父bean保持兼容，也就是说子bean中必须有父bean定义的所有属性
+	父bean必须是抽象bean或者定义lazy-init=true也就是不让bean工厂实例化该bean abstract="true" Spring不会实例化该bea
+	-->
+	<bean id="parent" class="spring.example.dao.Parent" abstract="true">
+		<property name="name" value="parent-name"/>
+		<property name="age" value="11"/>
+	</bean>
+	<bean id="son" class="spring.example.dao.son" parent="parent">
+		<property name="hobby" value="篮球"/>
+	</bean>
+
+	<!--集合注入-->
+	<bean id="collections" class="spring.example.dao.Collections">
+		<property name="listNames">
+			<list value-type="java.lang.String" merge="false">
+				<value>name</value>
+				<value>name</value>
+				<value>name</value>
+			</list>
+		</property>
+		<property name="arrayNames">
+			<array value-type="java.lang.String">
+				<value>2</value>
+				<value>2</value>
+				<value>2</value>
+			</array>
+		</property>
+		<property name="setNames">
+			<set value-type="java.lang.String" merge="true">
+				<value>张三</value>
+				<value>李四</value>
+				<value>王五</value>
+			</set>
+		</property>
+		<property name="mapNames">
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="1" value="11"/>
+				<entry key="1" value="11"/>
+				<entry key="1" value="11"/>
+			</map>
+		</property>
+		<property name="propertiesNames">
+			<props value-type="java.lang.String">
+				<prop key="1">2</prop>
+				<prop key="1">2</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!--1. lookup-method注入 : 当一个单例的bean引用了一个原型的bean，那么这个原型bean会被缓存起来，这就违背了原型的意图-->
+	<bean id="apple" class="spring.example.dao.Apple" scope="prototype"/>
+	<bean id="fruit" class="spring.example.dao.Fruit">
+		<lookup-method name="getApple" bean="apple"/>
+	</bean>
+
+	<!--2.replaced-method注入主要作用就是替换方法体及其返回值，其实现也比较简单-->
+	<bean id="replaceDog" class="spring.example.dao.ReplaceDog"/>
+	<bean id="originalDog" class="spring.example.dao.OriginalDog">
+		<replaced-method name="sayHello" replacer="replaceDog"><!--sayHello被调用的时候会执行replaceDog中的reimplement方法-->
+			<arg-type match="java.lang.String"/>
+		</replaced-method>
+	</bean>
+
+	<!--spring alias 别名-->
+	<bean id="replaceDog1-alias1" class="spring.example.dao.ReplaceDog"/>
+	<alias name="replaceDog1-alias1" alias="dog1"/>
+
+	<bean id="replaceDog1-alias" class="spring.example.dao.ReplaceDog" name="dog2-alias1,dog2-alias2">
+	<meta key="key1" value="11"/> <!--定义在beanDefination中的-->
+	</bean>
+
+
+
+</beans>

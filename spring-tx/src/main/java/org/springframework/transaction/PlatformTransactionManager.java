@@ -42,6 +42,12 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.transaction.support.TransactionTemplate
  * @see org.springframework.transaction.interceptor.TransactionInterceptor
  */
+
+/**
+ * org.springframework.jdbc.datasource.DataSourceTransactionManager	提供对单个javax.sql.DataSource事务管理，用于Spring JDBC抽象框架、iBATIS或MyBatis框架的事务管理
+ * org.springframework.orm.jpa.JpaTransactionManager	提供对单个javax.persistence.EntityManagerFactory事务支持，用于集成JPA实现框架时的事务管理
+ * org.springframework.transaction.jta.JtaTransactionManager	提供对分布式事务管理的支持，并将事务管理委托给Java EE应用服务器事务管理器
+ */
 public interface PlatformTransactionManager {
 
 	/**
@@ -67,6 +73,7 @@ public interface PlatformTransactionManager {
 	 * @see TransactionDefinition#getTimeout
 	 * @see TransactionDefinition#isReadOnly
 	 */
+	// 根据指定的传播行为，返回当前活动的事务或创建新事务。
 	TransactionStatus getTransaction(@Nullable TransactionDefinition definition)
 			throws TransactionException;
 
@@ -97,6 +104,7 @@ public interface PlatformTransactionManager {
 	 * is already completed (that is, committed or rolled back)
 	 * @see TransactionStatus#setRollbackOnly
 	 */
+	// 就给定事务的状态提交给定事务。
 	void commit(TransactionStatus status) throws TransactionException;
 
 	/**
@@ -115,6 +123,7 @@ public interface PlatformTransactionManager {
 	 * @throws IllegalTransactionStateException if the given transaction
 	 * is already completed (that is, committed or rolled back)
 	 */
+	// 执行给定事务的回滚。
 	void rollback(TransactionStatus status) throws TransactionException;
 
 }

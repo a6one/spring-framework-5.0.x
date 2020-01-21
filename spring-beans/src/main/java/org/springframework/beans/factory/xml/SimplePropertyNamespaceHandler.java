@@ -72,12 +72,17 @@ public class SimplePropertyNamespaceHandler implements NamespaceHandler {
 			String propertyName = parserContext.getDelegate().getLocalName(attr);
 			String propertyValue = attr.getValue();
 			MutablePropertyValues pvs = definition.getBeanDefinition().getPropertyValues();
+			//value <property> value就是直接注入
 			if (pvs.contains(propertyName)) {
 				parserContext.getReaderContext().error("Property '" + propertyName + "' is already defined using " +
 						"both <property> and inline syntax. Only one approach may be used per property.", attr);
 			}
+
+			//<property  ref = 'beanId'>
 			if (propertyName.endsWith(REF_SUFFIX)) {
 				propertyName = propertyName.substring(0, propertyName.length() - REF_SUFFIX.length());
+
+				//todo new RuntimeBeanReference(propertyValue):将ref=beanID 这个东西会先被封装为
 				pvs.add(Conventions.attributeNameToPropertyName(propertyName), new RuntimeBeanReference(propertyValue));
 			}
 			else {

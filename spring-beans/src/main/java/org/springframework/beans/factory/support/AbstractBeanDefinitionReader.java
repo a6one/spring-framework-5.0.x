@@ -183,6 +183,7 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 	public int loadBeanDefinitions(Resource... resources) throws BeanDefinitionStoreException {
 		Assert.notNull(resources, "Resource array must not be null");
 		int counter = 0;
+		//一个一个资源文件的读取
 		for (Resource resource : resources) {
 			counter += loadBeanDefinitions(resource);
 		}
@@ -219,7 +220,9 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
+				//spring.xml的位置
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				//读取资源文件的个数
 				int loadCount = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					for (Resource resource : resources) {
