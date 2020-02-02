@@ -102,7 +102,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 */
 		register(annotatedClasses);
 		/**
-		 * 269,6， 5，3 ，3
+		 * 269,6， 5，3 ，3，4
 		 *
 		 * AbstractApplicationContext-->refresh()
 		 * AbstractRefreshableApplicationContext->refreshBeanFactory()
