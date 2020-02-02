@@ -251,8 +251,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 *  情况4：A使用默认事务注解：@Transactional(rollbackFor = Exception.class)
 		 * 		  B使用新事务注解：@Transactional(propagation = Propagation.REQUIRES_NEW,rollbackFor = Exception.class)
 		 * 		  B发生异常，	A未catch	A不回滚，B回滚
-		 *		  B发生异常，	Acatch了异常，记录日志，未抛出异常	A不回滚，B回滚
-		 * 		  B发生异常，	Acatch了异常，记录日志，抛出异常	A回滚，B回滚
+		 *		  B发生异常，	A catch了异常，记录日志，未抛出异常	A不回滚，B回滚
+		 * 		  B发生异常，	A catch了异常，记录日志，抛出异常	A回滚，B回滚
 		 * 		  B执行成功后，	A发生了异常	A回滚，B不回滚
 		 * 	注：事务的隔离性
 		 *
