@@ -37,6 +37,42 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.support.RootBeanDefinition
  * @see org.springframework.beans.factory.support.ChildBeanDefinition
  */
+
+/**
+ *
+ * 		BeanMetadataElement    		AttributeAccessor
+ *
+ *								AttributeAccessorSupport
+ *
+ *					BeanMetadataAttributeAccessor
+ *
+ * 	   BeanDefinition
+ *
+ * 	   			AbstractBeanDefinition
+ *
+ * 	   		RootBeanDefinition
+ * 	   		ChildBeanDefinition
+ * 	   		GenericBeanDefinition  -->通用的beanDefinition
+ * 	   	  							 AnnotatedBeanDefinition
+ * 	   				AnnotatedGenericBeanDefinition  ->存储注解的信息
+ *
+ * 	   				ScannedGenericBeanDefinition
+ *
+ *
+ *
+ * RootBeanDefinition rootBeanDefinition = new RootBeanDefinition();
+ * rootBeanDefinition.setScope( BeanDefinition.SCOPE_SINGLETON );
+ * rootBeanDefinition.setLazyInit( false );
+ * rootBeanDefinition.setAbstract( false ); // 设置为抽象的, 则在创建bean对象的时候不会被创建
+ * context.registerBeanDefinition( "root", rootBeanDefinition );
+ *
+ *
+ * ChildBeanDefinition childBeanDefinition1 = new ChildBeanDefinition( "root" ); //子beanDefinition
+ * childBeanDefinition1.setBeanClass( TestClass1.class );
+ * context.registerBeanDefinition( "child1", childBeanDefinition1 );
+ *
+ *
+ */
 public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 
 	/**

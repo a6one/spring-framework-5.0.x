@@ -46,21 +46,26 @@ import java.util.List;
 @SuppressWarnings("serial")
 public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializable {
 
+	// todo 找到class-->对应的切面
 	@Override
 	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(
 			Advised config, Method method, @Nullable Class<?> targetClass) {
 
 		// This is somewhat tricky... We have to process introductions first,
 		// but we need to preserve order in the ultimate list.
+		//TODO 这里是取出来所有的切面config.getAdvisors()
 		List<Object> interceptorList = new ArrayList<Object>(config.getAdvisors().length);
+
 		Class<?> actualClass = (targetClass != null ? targetClass : method.getDeclaringClass());
 		boolean hasIntroductions = hasMatchingIntroductions(config, actualClass);
 		AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance();
 
 		for (Advisor advisor : config.getAdvisors()) {
+			// 1、pointcutAdvisor
 			if (advisor instanceof PointcutAdvisor) {
 				// Add it conditionally.
 				PointcutAdvisor pointcutAdvisor = (PointcutAdvisor) advisor;
+				// 1、匹配类
 				if (config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) {
 
 					/**
@@ -69,6 +74,7 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 					 */
 
 					MethodMatcher mm = pointcutAdvisor.getPointcut().getMethodMatcher();
+					//	2、匹配方法
 					if (MethodMatchers.matches(mm, method, actualClass, hasIntroductions)) {
 						/**
 						 * advice -->[advisorAdapter]methodInterceptor
@@ -88,6 +94,7 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 					}
 				}
 			}
+			// 2、引介切面
 			else if (advisor instanceof IntroductionAdvisor) {
 				IntroductionAdvisor ia = (IntroductionAdvisor) advisor;
 				if (config.isPreFiltered() || ia.getClassFilter().matches(actualClass)) {

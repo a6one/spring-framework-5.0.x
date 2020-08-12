@@ -112,8 +112,30 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 *=================================================
 		 * 1.单例循环依赖  3点
 		 * 构造方法无法处理循环依赖（待）
-		 * 2.原型不能解决循环依赖
+		 * 2.原型不能解决循环依赖和构造方法是无法解决的
 		 * 	原因：没有使用三级缓存，每次创建都是直接创建
+		 *
+		 *=================================================
+		 *1、什么是循环依赖问题？
+		 *2、spring怎么解决循环依赖问题？
+		 *3、spring只用二级缓存是否可以完成循环依赖问题？
+		 *
+		 *循环依赖的原理：(5,2点)
+		 *  Map<String, Object> singletonObjects						[A实例化完成并初始化完成]				[B实例化完成并初始化完成]
+		 *
+		 *  Map<String, Object> earlySingletonObjects					[B进行初始化的时候，将A升级到二级缓存中]
+		 *
+		 *  Map<String, ObjectFactory<?>> singletonFactories			[A实例化完成未初始化] 					[B实例化完成未初始化]
+		 *
+		 * 1、一级缓存是否可以解决循环依赖问题？
+		 *  不能，一级缓存存放的是实例化和初始化都完成的对象，如果在并发情况下，会存在获取了实例化但未初始化的对象
+		 *
+		 * 2、二级缓存是否可以解决循环依赖问题？
+		 *	不能，如果使用二级缓存，因为Map中的value是一个Object类型，所以如果你在为这个对象创建动态【代理对象】的时候，在并发情况下此时获取了未创建代理对象的原始对象
+		 *		 是的，前后的对象不一致。而使用三级缓存的好处是map中的value是一个ObjectFactory接口的匿名内部类，是的调用的时候在进行执行。
+		 *
+		 *
+		 *=================================================
 		 *
 		 * org.springframework.beans.factory.support.AbstractBeanFactory#getBean(java.lang.String)
 		 * org.springframework.beans.factory.support.AbstractBeanFactory#doGetBean(java.lang.String, java.lang.Class, java.lang.Object[], boolean)
@@ -156,7 +178,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 * SmartInstantiationAwareBeanPostProcessor
 		 * DestructionAwareBeanPostProcessor
 		 *
-		 *
+		 * @EnableAspectJAutoProxy
 		 * AbstractAutoProxyCreator
 		 * AnnotationAwareAspectJAutoProxyCreator
 		 * //AOP的入口： 2 ,4 3
@@ -189,11 +211,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 * 		org.springframework.transaction.interceptor.TransactionAspectSupport#invokeWithinTransaction(java.lang.reflect.Method, java.lang.Class, org.springframework.transaction.interceptor.TransactionAspectSupport.InvocationCallback)
 		 *===============================================================
 		 *
+		 * 代理dataSource的commit rollback
+		 *
 		 * 事务总结：2（传播行为 + 隔离级别）,4  | 2,3 【4】-->jdbc依赖（事务的开启）
 		 * AutoProxyRegistrar-->
 		 * 		InfrastructureAdvisorAutoProxyCreator | AbstractAutoProxyCreator（注册一个后置处理器）
 		 *
-		 * ProxyTransactionManagementConfiguration
+		 *  ProxyTransactionManagementConfiguration
 		 * 	BeanFactoryTransactionAttributeSourceAdvisor
 		 * 	TransactionAttributeSource
 		 * 	TransactionInterceptor

@@ -73,6 +73,7 @@ import java.util.function.Supplier;
  * @see DefaultListableBeanFactory
  * @see BeanDefinitionRegistry
  */
+//自动装配的beanFactory
 public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory
 		implements AutowireCapableBeanFactory {
 

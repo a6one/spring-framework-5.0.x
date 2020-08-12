@@ -314,7 +314,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			for (int x = 0; x < methods.length; x++) {
 				Method method = methods[x];
 
-				//
+				//获取拦截器链过程
 				List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, rootClass);
 				fixedCallbacks[x] = new FixedChainStaticTargetInterceptor(
 						chain, this.advised.getTargetSource().getTarget(), this.advised.getTargetClass());
