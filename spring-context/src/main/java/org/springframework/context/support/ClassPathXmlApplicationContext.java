@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  */
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
 
+
 	@Nullable
 	private Resource[] configResources;
 

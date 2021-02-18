@@ -90,6 +90,16 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
 		/**
+		 * 启动Spring容器：
+		 * 方式1: 基于xml配置启动
+		 * 	ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+		 *	context.start()
+		 *方式2： 基于注解配置启动
+		 *  AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ProviderConfiguration.class);
+		 *  context.start();
+		 *
+		 *
+		 *
 		 * AnnotatedBeanDefinitionReader：基于注解的reader
 		 * ClassPathBeanDefinitionScanner：扫描路径的，指定的注解
 		 */
